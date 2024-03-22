@@ -50,9 +50,11 @@ class filter_biblelinks extends moodle_text_filter {
      * @param context $context The current context.
      */
     public function setup($page, $context) {
+        global $CFG;
 
         if ($page->requires->should_create_one_time_item_now('filter_biblelinks-scripts')) {
-            $page->requires->js_call_amd('filter_biblelinks/loader', 'init', []);
+            // $page->requires->js_call_amd('filter_biblelinks/loader', 'init', []);
+            $page->requires->js(new moodle_url($CFG->wwwroot . '/filter/biblelinks/scripts/loader.js'));
         }
     }
 

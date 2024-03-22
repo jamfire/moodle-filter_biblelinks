@@ -20,14 +20,14 @@
  */
 
 /**
- * Translation Editor UI
+ * Bible Links Passage Loader
  */
-export const init = () => {
 
+(function () {
     /**
      * Get text from processing areas and add them to contenteditables
      */
-    window.addEventListener("load", () => {
+    document.addEventListener("DOMContentLoaded", function () {
         let passages = document.querySelectorAll(
             ".filter-biblelinks__bible-passage"
         );
@@ -71,5 +71,4 @@ export const init = () => {
         });
 
     });
-
-};
+})();
