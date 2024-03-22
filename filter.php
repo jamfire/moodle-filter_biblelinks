@@ -114,7 +114,7 @@ class filter_biblelinks extends moodle_text_filter {
         $lines = explode("\n", $text);
         $newlines = [];
 
-        $translations = $this->gettranslations($langs);
+        $versions = $this->gettranslations($langs);
 
         // Iterate through each line and append links.
         foreach ($lines as $line) {
@@ -124,15 +124,15 @@ class filter_biblelinks extends moodle_text_filter {
                 $parts = explode('|', $matches[0]);
                 $url = $baseurl . $parts[0];
                 if (!empty($parts[1])) {
-                    $translations = $parts[1];
+                    $versions = $parts[1];
                 }
 
                 // Append versions.
-                $url .= "&version=" . $translations;
+                $url .= "&version=" . $versions;
 
                 // Build the display text.
                 $display = $parts[0];
-                $display .= ' (' . str_replace(',', ', ', $translations) . ')';
+                $display .= ' (' . str_replace(',', ', ', $versions) . ')';
 
                 // Format the match as a link.
                 $link = '<a href="' . $url . '" target="_blank">' . $display . '</a>';
@@ -140,14 +140,14 @@ class filter_biblelinks extends moodle_text_filter {
                 $newlines[] = $newline;
 
                 // Add passage as new element.
-                $versions = explode(',', $translations);
+                $versionarray = explode(',', $versions);
                 $passage = '<div class="container-fluid">';
                 $passage .= '<div class="mt-3 mb-3 border row">';
 
-                foreach ($versions as $version) {
+                foreach ($versionarray as $version) {
                     $passage .= '<div class="filter-biblelinks__bible-passage col p-4" data-version="';
-                    $passage .= $version . '" data-passage="' . $matches[0] . '">';
-                    $passage .= '<p><strong>' . $matches[0] . ' ' . $version . '</strong></p>';
+                    $passage .= $version . '" data-passage="' . $parts[0] . '">';
+                    $passage .= '<p><strong>' . $parts[0] . ' ' . $version . '</strong></p>';
 
                     $passage .= '<div class="passagetext">';
                     $passage .= '<div class="spinner-border text-primary" role="status">';
