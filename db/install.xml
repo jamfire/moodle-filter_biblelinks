@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="filter/biblelinks/db" VERSION="20240127" COMMENT="XMLDB file for Moodle filter/biblelinks"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="filter_biblelinks_cache" COMMENT="Stored cached results">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="version" TYPE="char" LENGTH="12" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="pkey" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="passage" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="text" TYPE="text"  NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="fetched" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="Last fetch time of passage"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="version_index" UNIQUE="false" FIELDS="version" COMMENT="Version index"/>
+        <INDEX NAME="pkey_index" UNIQUE="false" FIELDS="pkey" COMMENT="Passage index" />
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

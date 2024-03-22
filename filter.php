@@ -31,7 +31,6 @@ require_once($CFG->libdir . '/filterlib.php');
 require_once(__DIR__ . "/vendor/autoload.php");
 
 use core_customfield\output\field_data;
-use core_course_list_element;
 
 /**
  * Autotranslate current language if not system default

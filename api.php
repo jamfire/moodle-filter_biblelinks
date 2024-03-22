@@ -60,56 +60,109 @@ class bibleapi {
     }
 
     /**
+     * Check the cache for a saved translation
+     */
+    private function checkcache() {
+        global $DB;
+
+        $passages = explode(';', $this->passage);
+        $versions = explode(',', $this->version);
+
+        $data = [];
+
+        foreach ($versions as $version) {
+            $data[$version] = [];
+            foreach ($passages as $passage) {
+                $results = $DB->get_record(
+                    'filter_biblelinks_cache',
+                    [
+                        'version' => trim($version),
+                        'pkey' => trim($passage),
+                    ],
+                    '*'
+                );
+
+                $item = [];
+                $item['version'] = $version;
+                $item['pkey'] = $passage;
+                $item['passage'] = $results ? $results->passage : null;
+                $item['text'] = $results ? $results->text : null;
+
+                array_push($data[$version], $item);
+            }
+        }
+        return $data;
+    }
+
+    /**
      * Get the passage
      *
      * @return json
      */
     public function getdata() {
-        // Build the url.
-        $url = $this->baseurl . "?search=" . $this->passage;
-        $url .= "&version=" . $this->version;
+        global $DB;
 
-        // Get the html.
-        $html = file_get_contents($url);
+        // Check the cache first.
+        $cached = $this->checkcache();
 
-        // Could not fetch the html.
-        if ($html === false) {
-            // Handle error when fetching HTML.
-            echo json_encode([
-                'error' => 'Could not fetch passage.',
-            ]);
-            exit();
-        }
+        // Loop through the cache.
+        foreach ($cached as $version => $items) {
+            foreach ($items as $idx => $item) {
+                if (!$item['text']) {
+                    // Build the url.
+                    $url = $this->baseurl . "?search=" . $item['passage'];
+                    $url .= "&version=" . $item['version'];
 
-        // Build a dom for parsing.
-        $dom = new DOMDocument();
-        // Suppress errors for invalid HTML.
-        @$dom->loadHTML($html);
+                    // Get the html.
+                    $html = file_get_contents($url);
 
-        $parseddata = [];
-        $divelements = $dom->getElementsByTagName('div');
+                    // Could not fetch the html.
+                    if ($html === false) {
+                        // Handle error when fetching HTML.
+                        echo json_encode([
+                            'error' => 'Could not fetch passage.',
+                        ]);
+                        exit();
+                    }
 
-        foreach ($divelements as $element) {
-            if ($element->getAttribute('class') == 'passage-table') {
-                $this->parseelement($parseddata, $element);
-            }
-        }
+                    // Build a dom for parsing.
+                    $dom = new DOMDocument();
+                    // Suppress errors for invalid HTML.
+                    @$dom->loadHTML($html);
 
-        // Get the versions.
-        $versions = explode(',', $this->version);
-        $data = [];
-        foreach ($versions as $version) {
-            $data[$version] = [];
-            foreach ($parseddata as $item) {
-                if ($item['translation'] === $version) {
-                    $data[$version][] = $item;
+                    $parseddata = [];
+                    $divelements = $dom->getElementsByTagName('div');
+
+                    foreach ($divelements as $element) {
+                        if ($element->getAttribute('class') == 'passage-table') {
+                            $this->parseelement($parseddata, $element);
+                        }
+                    }
+
+                    if ($parseddata[0]['text']) {
+                        // Save the item to the cache.
+                        $record = [
+                            'version' => trim($item['version']),
+                            'pkey' => trim($item['passage']),
+                            'passage' => trim($parseddata[0]['passage']),
+                            'text' => trim($parseddata[0]['text']),
+                            'fetched' => time(),
+                        ];
+                        $DB->insert_record(
+                            'filter_biblelinks_cache',
+                            $record
+                        );
+
+                        // Set the cached text.
+                        $cached[$version][$idx]['text'] = $parseddata[0]['text'];
+                        $cached[$version][$idx]['passage'] = $parseddata[0]['passage'];
+                    }
                 }
             }
         }
 
         echo json_encode([
-            'url' => $url,
-            'data' => $data,
+            'data' => $cached,
         ]);
 
         exit();
@@ -125,7 +178,7 @@ class bibleapi {
 
                 if ($translation) {
                     $data = [
-                        'translation' => $translation,
+                        'version' => $translation,
                         'passage' => '',
                         'text' => '',
                     ];
