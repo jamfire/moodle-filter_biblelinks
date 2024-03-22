@@ -51,7 +51,7 @@ export const init = () => {
                     let response = JSON.parse(xhr.responseText);
                     element.innerHTML = "";
                     response.data[version].forEach(passage => {
-                        element.innerHTML += '<h4>' + passage.passage + '</h4>';
+                        element.innerHTML += '<h5>' + passage.passage + '</h5>';
                         element.innerHTML += passage.text;
                     });
                 } else {

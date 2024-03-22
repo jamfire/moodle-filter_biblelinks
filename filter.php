@@ -68,10 +68,6 @@ class filter_biblelinks extends moodle_text_filter {
     public function filter($text, array $options = []): string {
         global $COURSE;
 
-        // Get AI Client.
-        $apikey = "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";
-        $client = \OpenAI::client($apikey);
-
         $contextlevel = $this->context->contextlevel;
         $skip = [];
         $skip[] = $contextlevel === CONTEXT_COURSE;
