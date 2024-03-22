@@ -1,0 +1,21 @@
+{
+    "name": "kalebheitzman/biblelinks",
+    "description": "Link and display scripture with AI",
+    "require": {
+        "openai-php/client": "^0.8.4",
+        "symfony/http-client": "^7.0",
+        "nyholm/psr7": "^1.8",
+        "guzzlehttp/guzzle": "^7.8"
+    },
+    "authors": [
+        {
+            "name": "Kaleb Heitzman",
+            "email": "kaleb@jamfire.io"
+        }
+    ],
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}

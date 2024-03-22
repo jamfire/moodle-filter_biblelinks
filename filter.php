@@ -28,6 +28,7 @@ global $CFG;
 
 // Get libs.
 require_once($CFG->libdir . '/filterlib.php');
+require_once(__DIR__ . "/vendor/autoload.php");
 
 use core_customfield\output\field_data;
 use core_course_list_element;
@@ -42,6 +43,19 @@ use core_course_list_element;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class filter_biblelinks extends moodle_text_filter {
+    /*
+     * Add the javascript to enable passage processing on this page.
+     *
+     * @param moodle_page $page The current page.
+     * @param context $context The current context.
+     */
+    public function setup($page, $context) {
+
+        if ($page->requires->should_create_one_time_item_now('filter_biblelinks-scripts')) {
+            $page->requires->js_call_amd('filter_biblelinks/loader', 'init', []);
+        }
+    }
+
     /**
      * This function filters the received text based on the language
      * tags embedded in the text, and the current user language or
@@ -53,6 +67,10 @@ class filter_biblelinks extends moodle_text_filter {
      */
     public function filter($text, array $options = []): string {
         global $COURSE;
+
+        // Get AI Client.
+        $apikey = "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";
+        $client = \OpenAI::client($apikey);
 
         $contextlevel = $this->context->contextlevel;
         $skip = [];
@@ -85,14 +103,14 @@ class filter_biblelinks extends moodle_text_filter {
 
         // Bible passages pattern.
         $passagepattern = '\b(?:Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Ruth|' .
-          '1\s*Samuel|2\s*Samuel|1\s*Kings|2\s*Kings|1\s*Chronicles|2\s*Chronicles|' .
-          'Ezra|Nehemiah|Esther|Job|Psalms|Proverbs|Ecclesiastes|Song\s*of\s*Solomon|' .
-          'Isaiah|Jeremiah|Lamentations|Ezekiel|Daniel|Hosea|Joel|Amos|Obadiah|Jonah|' .
-          'Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Matthew|Mark|Luke|' .
-          'John|Acts|Romans|1\s*Corinthians|2\s*Corinthians|Galatians|Ephesians|Philippians|' .
-          'Colossians|1\s*Thessalonians|2\s*Thessalonians|1\s*Timothy|2\s*Timothy|Titus|' .
-          'Philemon|Hebrews|James|1\s*Peter|2\s*Peter|1\s*John|2\s*John|3\s*John|Jude|' .
-          'Revelation)\s+\d+:\d+(?:-\d+)?(?:,\d+(?:-\d+)?)?(?:\|\w+(?:,\w+)*)?\b';
+        '1\s*Samuel|2\s*Samuel|1\s*Kings|2\s*Kings|1\s*Chronicles|2\s*Chronicles|' .
+        'Ezra|Nehemiah|Esther|Job|Psalms|Proverbs|Ecclesiastes|Song\s*of\s*Solomon|' .
+        'Isaiah|Jeremiah|Lamentations|Ezekiel|Daniel|Hosea|Joel|Amos|Obadiah|Jonah|' .
+        'Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Matthew|Mark|Luke|' .
+        'John|Acts|Romans|1\s*Corinthians|2\s*Corinthians|Galatians|Ephesians|Philippians|' .
+        'Colossians|1\s*Thessalonians|2\s*Thessalonians|1\s*Timothy|2\s*Timothy|Titus|' .
+        'Philemon|Hebrews|James|1\s*Peter|2\s*Peter|1\s*John|2\s*John|3\s*John|Jude|' .
+        'Revelation)\s+\d+:\d+(?:-\d+)?(?:,\d+(?:-\d+)?)?(?:\|\w+(?:,\w+)*)?\b';
 
         $pattern = "/(?:$passagepattern(?:;\s*$passagepattern)*)/";
 
@@ -106,16 +124,48 @@ class filter_biblelinks extends moodle_text_filter {
         foreach ($lines as $line) {
             preg_match($pattern, $line, $matches);
             if (!empty($matches[0])) {
+                // Build the url.
                 $parts = explode('|', $matches[0]);
                 $url = $baseurl . $parts[0];
                 if (!empty($parts[1])) {
-                    $url .= "&version=" . $parts[1];
-                } else {
-                    $url .= "&version=" . $translations;
+                    $translations = $parts[1];
                 }
-                $link = '<a href="' . $url . '" target="_blank">' . $matches[0] . '</a>';
+
+                // Append versions.
+                $url .= "&version=" . $translations;
+
+                // Build the display text.
+                $display = $parts[0];
+                $display .= ' (' . str_replace(',', ', ', $translations) . ')';
+
+                // Format the match as a link.
+                $link = '<a href="' . $url . '" target="_blank">' . $display . '</a>';
                 $newline = str_replace($matches[0], $link, $line);
                 $newlines[] = $newline;
+
+                // Add passage as new element.
+                $versions = explode(',', $translations);
+                $passage = '<div class="container-fluid">';
+                $passage .= '<div class="mt-3 mb-3 border row">';
+
+                foreach ($versions as $version) {
+                    $passage .= '<div class="filter-biblelinks__bible-passage col p-4" data-version="';
+                    $passage .= $version . '" data-passage="' . $matches[0] . '">';
+                    $passage .= '<p><strong>' . $matches[0] . ' ' . $version . '</strong></p>';
+
+                    $passage .= '<div class="passagetext">';
+                    $passage .= '<div class="spinner-border text-primary" role="status">';
+                    $passage .= '<span class="sr-only">Loading...</span>';
+                    $passage .= '</div>';
+                    $passage .= '</div>';
+
+                    $passage .= "</div>";
+                }
+
+                $passage .= '</div>';
+                $passage .= "</div>";
+
+                $newlines[] = $passage;
             } else {
                 $newlines[] = $line;
             }
@@ -127,6 +177,9 @@ class filter_biblelinks extends moodle_text_filter {
         return $text;
     }
 
+    /**
+     * Get translations based on default lang
+     */
     private function gettranslations($langs) {
 
         // Default translations.
