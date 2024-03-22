@@ -53,7 +53,6 @@ class filter_biblelinks extends moodle_text_filter {
         global $CFG;
 
         if ($page->requires->should_create_one_time_item_now('filter_biblelinks-scripts')) {
-            // $page->requires->js_call_amd('filter_biblelinks/loader', 'init', []);
             $page->requires->js(new moodle_url($CFG->wwwroot . '/filter/biblelinks/scripts/loader.js'));
         }
     }
@@ -144,14 +143,14 @@ class filter_biblelinks extends moodle_text_filter {
                 // Add passage as new element.
                 $versionarray = explode(',', $versions);
                 $passage = '<div class="container-fluid w-100 mw-100">';
-                $passage .= '<div class="mt-3 mb-3 border row rounded">';
+                $passage .= '<div class="mt-3 mb-3 p-0 border row no-gutters rounded">';
 
                 foreach ($versionarray as $version) {
-                    $passage .= '<div class="filter-biblelinks__bible-passage col p-4" data-version="';
+                    $passage .= '<div class="filter-biblelinks__bible-passage col" data-version="';
                     $passage .= $version . '" data-passage="' . $parts[0] . '">';
-                    $passage .= '<p><strong>' . $parts[0] . ' ' . $version . '</strong></p>';
+                    $passage .= '<div class="bg-primary text-white px-3 py-2"><strong>' . $parts[0] . ' ' . $version . '</strong></div>';
 
-                    $passage .= '<div class="passagetext">';
+                    $passage .= '<div class="passagetext px-3 py-5">';
                     $passage .= '<div class="spinner-border text-primary" role="status">';
                     $passage .= '<span class="sr-only">Loading...</span>';
                     $passage .= '</div>';
