@@ -142,7 +142,7 @@ class filter_biblelinks extends moodle_text_filter {
                 // Add passage as new element.
                 $versionarray = explode(',', $versions);
                 $passage = '<div class="container-fluid w-100 mw-100">';
-                $passage .= '<div class="mt-3 mb-3 border row">';
+                $passage .= '<div class="mt-3 mb-3 border row rounded">';
 
                 foreach ($versionarray as $version) {
                     $passage .= '<div class="filter-biblelinks__bible-passage col p-4" data-version="';
