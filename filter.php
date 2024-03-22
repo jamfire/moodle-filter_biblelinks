@@ -67,6 +67,7 @@ class filter_biblelinks extends moodle_text_filter {
      */
     public function filter($text, array $options = []): string {
         global $COURSE;
+        global $DB;
 
         $contextlevel = $this->context->contextlevel;
         $skip = [];
@@ -139,29 +140,61 @@ class filter_biblelinks extends moodle_text_filter {
                 $newline = str_replace($matches[0], $link, $line);
                 $newlines[] = $newline;
 
-                // Add passage as new element.
+                // Open the parallel.
                 $versionarray = explode(',', $versions);
-                $passage = '<div class="container-fluid w-100 mw-100">';
-                $passage .= '<div class="mt-3 mb-3 p-0 border row no-gutters rounded">';
+                $html = '<div class="container-fluid w-100 mw-100 px-0">';
+                $html .= '<div class="mt-3 mb-3 p-0 border row no-gutters rounded">';
 
                 foreach ($versionarray as $version) {
-                    $passage .= '<div class="filter-biblelinks__bible-passage col" data-version="';
-                    $passage .= $version . '" data-passage="' . $parts[0] . '">';
-                    $passage .= '<div class="bg-primary text-white px-3 py-2"><strong>' . $parts[0] . ' ' . $version . '</strong></div>';
+                    // Open the passages column.
+                    $passages = explode(';', $parts[0]);
+                    $html .= '<div class="col">';
 
-                    $passage .= '<div class="passagetext px-3 py-5">';
-                    $passage .= '<div class="spinner-border text-primary" role="status">';
-                    $passage .= '<span class="sr-only">Loading...</span>';
-                    $passage .= '</div>';
-                    $passage .= '</div>';
+                    // Header row.
+                    $html .= '<div class="bg-primary text-white px-3 py-2 mb-3"><strong>';
+                    $html .= $parts[0] . ' ' . $version . '</strong></div>';
 
-                    $passage .= "</div>";
+                    // Loop through the passages.
+                    foreach ($passages as $passage) {
+                        // Check for cached record.
+                        $record = $DB->get_record(
+                            'filter_biblelinks_cache',
+                            [
+                                'version' => trim($version),
+                                'pkey' => trim($passage),
+                            ],
+                            '*'
+                        );
+
+                        $status = "fetch";
+                        if ($record) {
+                            $status = "cached";
+                        }
+                        $html .= '<div class="px-3 pb-5 filter-biblelinks__bible-passage" data-version="';
+                        $html .= trim($version) . '" data-status="' . $status . '"';
+                        $html .= ' data-passage="' . trim($passage) . '">';
+
+                        if ($record) {
+                            $html .= '<h5>' . $record->passage . '</h5>';
+                            $html .= '<div>' . $record->text . '</div>';
+                        } else {
+                            $html .= '<div class="spinner-border text-primary" role="status">';
+                            $html .= '<span class="sr-only">Loading...</span>';
+                            $html .= '</div>';
+                        }
+
+                        $html .= '</div>';
+                    }
+
+                    // Close the passages column.
+                    $html .= "</div>";
                 }
 
-                $passage .= '</div>';
-                $passage .= "</div>";
+                // Close the parallel.
+                $html .= '</div>';
+                $html .= "</div>";
 
-                $newlines[] = $passage;
+                $newlines[] = $html;
             } else {
                 $newlines[] = $line;
             }

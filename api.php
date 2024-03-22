@@ -110,7 +110,7 @@ class bibleapi {
             foreach ($items as $idx => $item) {
                 if (!$item['text']) {
                     // Build the url.
-                    $url = $this->baseurl . "?search=" . $item['passage'];
+                    $url = $this->baseurl . "?search=" . $item['pkey'];
                     $url .= "&version=" . $item['version'];
 
                     // Get the html.
@@ -143,7 +143,7 @@ class bibleapi {
                         // Save the item to the cache.
                         $record = [
                             'version' => trim($item['version']),
-                            'pkey' => trim($item['passage']),
+                            'pkey' => trim($item['pkey']),
                             'passage' => trim($parseddata[0]['passage']),
                             'text' => trim($parseddata[0]['text']),
                             'fetched' => time(),

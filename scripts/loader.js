@@ -29,30 +29,33 @@
      */
     document.addEventListener("DOMContentLoaded", function () {
         let passages = document.querySelectorAll(
-            ".filter-biblelinks__bible-passage"
+            '[data-status="fetch"]'
         );
 
         passages.forEach(item => {
             let version = item.getAttribute('data-version');
-            let element = item.querySelector('.passagetext');
 
             // Create a new XMLHttpRequest object
             let xhr = new XMLHttpRequest();
 
-            // Configure the request as a GET request
-            xhr.open("GET", "/filter/biblelinks/api.php?passage="
+            let url = "/filter/biblelinks/api.php?passage="
                 + item.dataset.passage + "&version="
-                + item.dataset.version, true);
+                + item.dataset.version;
+
+            console.log(url)
+
+            // Configure the request as a GET request
+            xhr.open("GET", url, true);
 
             // Set up a function to handle the response
             xhr.onload = function () {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // Request was successful, handle the response
                     let response = JSON.parse(xhr.responseText);
-                    element.innerHTML = "";
+                    item.innerHTML = "";
                     response.data[version].forEach(passage => {
-                        element.innerHTML += '<h5>' + passage.passage + '</h5>';
-                        element.innerHTML += passage.text;
+                        item.innerHTML += '<h5>' + passage.passage + '</h5>';
+                        item.innerHTML += passage.text;
                     });
                 } else {
                     // Request failed, handle the error
