@@ -121,19 +121,21 @@ class filter_biblelinks extends moodle_text_filter {
         foreach ($lines as $line) {
             preg_match($pattern, $line, $matches);
             if (!empty($matches[0])) {
+                $localversions = $versions;
                 // Build the url.
                 $parts = explode('|', $matches[0]);
                 $url = $baseurl . $parts[0];
+
                 if (!empty($parts[1])) {
-                    $versions = $parts[1];
+                    $localversions = $parts[1];
                 }
 
-                // Append versions.
-                $url .= "&version=" . $versions;
+                // Append localversions.
+                $url .= "&version=" . $localversions;
 
                 // Build the display text.
                 $display = $parts[0];
-                $display .= ' (' . str_replace(',', ', ', $versions) . ')';
+                $display .= ' (' . str_replace(',', ', ', $localversions) . ')';
 
                 // Format the match as a link.
                 $link = '<a href="' . $url . '" target="_blank">' . $display . '</a>';
@@ -141,7 +143,7 @@ class filter_biblelinks extends moodle_text_filter {
                 $newlines[] = $newline;
 
                 // Open the parallel.
-                $versionarray = explode(',', $versions);
+                $versionarray = explode(',', $localversions);
                 $html = '<div class="container-fluid w-100 mw-100 px-0">';
                 $html .= '<div class="mt-3 mb-3 p-0 border row no-gutters rounded">';
 
@@ -221,7 +223,7 @@ class filter_biblelinks extends moodle_text_filter {
             'pl' => 'UBG',
             'ro' => 'RMNN',
             'ru' => 'NRT',
-            'tr' => '',
+            'tr' => 'NIV',
             'uk' => 'UKR',
         ];
 
