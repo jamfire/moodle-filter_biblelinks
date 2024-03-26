@@ -16,7 +16,8 @@
 
 namespace filter_biblelinks\api;
 
-use filter_biblelinks\api\get_biblegateway;
+use filter_biblelinks\api\parser_biblegateway;
+use filter_biblelinks\api\parser_biblecom;
 
 require_once(dirname(__DIR__, 4) . '/config.php');
 require_login();
@@ -36,45 +37,136 @@ class bibleapi {
     const BIBLECOM = "biblecom";
 
     protected array $data;
+
+    protected string $versions;
+
+    protected string $passage;
+
     /**
-     * Setup the API.
+     * Constructor for the Bible API
+     *
+     * Sets the data returned from each of the parsers
+     *
+     * @param string $versions Bible versions requested
+     * @param string $passage Passage requested
      */
     public function __construct($versions, $passage) {
 
-        $versionsarray = explode(',', $versions);
+        $this->versions = $versions;
+        $this->passage = $passage;
 
-        $biblegatewayversions = array_filter($versionsarray, function ($version) {
-            $versiondetails = $this->getversiondetails($version);
-            return $versiondetails['parser'] === self::BIBLEGATEWAY;
-        });
+        // Biblegateway.com data.
+        $biblegatewaydata = $this->parsebiblegateway();
 
-        $biblegateway = new get_biblegateway(implode(',', $biblegatewayversions), $passage);
-        $data = $biblegateway->getdata();
+        // Bible.com data.
+        $biblecomdata = $this->parsebiblecom();
+
+        // Merged the parsed data.
+        $data = array_merge($biblegatewaydata, $biblecomdata);
 
         $this->data = $data;
-
-        return $data;
     }
 
     public function getdata() {
         return $this->data;
     }
 
-    private function getversiondetails($version) {
+    /**
+     * Get Version Details
+     *
+     * This returns the needed details to begin parsing for the selectd version
+     *
+     * @return array $data Bible Version Details
+     */
+    private function parsingdetails($version) {
         $data = [];
 
+        $passages = explode(';', $this->passage);
+        $passages = array_map('trim', $passages);
+
+        // Turkish version.
         $data['TCL02'] = [];
         $data['TCL02'] = [];
         $data['TCL02']['version'] = 'TCL02';
+        $data['TCL02']['passages'] = $passages;
         $data['TCL02']['parser'] = self::BIBLECOM;
+        $data['TCL02']['bibleid'] = 170;
 
+        // If the version does not exist, assume biblegateway.com.
         if (!array_key_exists($version, $data)) {
             $data[$version] = [
                 'version' => $version,
+                'passages' => $passages,
                 'parser' => self::BIBLEGATEWAY,
             ];
         }
 
+        // Return the data.
         return $data[$version];
+    }
+
+    /**
+     * Parse BibleGateway.com
+     *
+     * Lookup and cache results from biblegateway.com
+     *
+     * @return array $data Data fetched from biblegateway.com or the cache
+     */
+    private function parsebiblegateway() {
+        $passage = $this->passage;
+
+        $versionsarray = explode(',', $this->versions);
+
+        // Get versions available on biblegateway.com.
+        $versiondata = array_filter($versionsarray, function ($version) {
+            $versiondetails = $this->parsingdetails($version);
+            return $versiondetails['parser'] === self::BIBLEGATEWAY;
+        });
+        $details = array_map(function ($version) {
+            return $this->parsingdetails($version);
+        }, $versiondata);
+
+        $data = [];
+        foreach ($details as $detail) {
+            // Get biblegateway.com data.
+            $parser = new parser_biblegateway($detail);
+            $data[] = $parser->getdata();
+        }
+
+        return $data;
+    }
+
+    /**
+     * Parse Bible.com
+     *
+     * Lookup and cache results from bible.com
+     *
+     * @param string $versions Bible versions requested
+     * @param string $passage Passage requested
+     * @return array $data Data fetched from bible.com or the cache
+     */
+    private function parsebiblecom() {
+        $versions = $this->versions;
+        $passage = $this->passage;
+
+        $versionsarray = explode(',', $versions);
+
+        // Get versions available on biblegateway.com.
+        $versiondata = array_filter($versionsarray, function ($version) {
+            $versiondetails = $this->parsingdetails($version);
+            return $versiondetails['parser'] === self::BIBLECOM;
+        });
+        $details = array_map(function ($version) {
+            return $this->parsingdetails($version);
+        }, $versiondata);
+
+        $data = [];
+        foreach ($details as $detail) {
+            // Get biblegateway.com data.
+            $parser = new parser_biblecom($detail);
+            $data[] = $parser->getdata();
+        }
+
+        return $data;
     }
 }

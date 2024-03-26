@@ -42,8 +42,6 @@
                 + item.dataset.passage + "&version="
                 + item.dataset.version;
 
-            console.log(url)
-
             // Configure the request as a GET request
             xhr.open("GET", url, true);
 
@@ -52,6 +50,7 @@
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // Request was successful, handle the response
                     let response = JSON.parse(xhr.responseText);
+                    console.log(response);
                     item.innerHTML = "";
                     response.data[version].forEach(passage => {
                         item.innerHTML += '<h5>' + passage.passage + '</h5>';

@@ -31,6 +31,7 @@ require_once($CFG->libdir . '/filterlib.php');
 require_once(__DIR__ . "/vendor/autoload.php");
 
 use core_customfield\output\field_data;
+use filter_biblelinks\api\parser;
 
 /**
  * Autotranslate current language if not system default
@@ -156,36 +157,44 @@ class filter_biblelinks extends moodle_text_filter {
                     $html .= '<div class="bg-primary text-white px-3 py-2 mb-3"><strong>';
                     $html .= $parts[0] . ' ' . $version . '</strong></div>';
 
+                    // Get the parser.
+                    $parser = new parser($version, $passages);
+
                     // Loop through the passages.
                     foreach ($passages as $passage) {
-                        // Check for cached record.
-                        $record = $DB->get_record(
-                            'filter_biblelinks_cache',
-                            [
-                                'version' => trim($version),
-                                'pkey' => trim($passage),
-                            ],
-                            '*'
-                        );
+                        // Parse out split passages.
+                        $formattedpassages = $parser->formatpassages($passage);
 
-                        $status = "fetch";
-                        if ($record) {
-                            $status = "cached";
-                        }
-                        $html .= '<div class="px-3 pb-5 filter-biblelinks__bible-passage" data-version="';
-                        $html .= trim($version) . '" data-status="' . $status . '"';
-                        $html .= ' data-passage="' . trim($passage) . '">';
+                        foreach ($formattedpassages as $item) {
+                            // Check for cached record.
+                            $record = $DB->get_record(
+                                'filter_biblelinks_cache',
+                                [
+                                    'version' => trim($version),
+                                    'pkey' => trim($item),
+                                ],
+                                '*'
+                            );
 
-                        if ($record) {
-                            $html .= '<h5>' . $record->passage . '</h5>';
-                            $html .= '<div>' . $record->text . '</div>';
-                        } else {
-                            $html .= '<div class="spinner-border text-primary" role="status">';
-                            $html .= '<span class="sr-only">Loading...</span>';
+                            $status = "fetch";
+                            if ($record) {
+                                $status = "cached";
+                            }
+                            $html .= '<div class="px-3 pb-5 filter-biblelinks__bible-passage" data-version="';
+                            $html .= trim($version) . '" data-status="' . $status . '"';
+                            $html .= ' data-passage="' . trim($passage) . '">';
+
+                            if ($record) {
+                                $html .= '<h5>' . $record->passage . '</h5>';
+                                $html .= '<div>' . $record->text . '</div>';
+                            } else {
+                                $html .= '<div class="spinner-border text-primary" role="status">';
+                                $html .= '<span class="sr-only">Loading...</span>';
+                                $html .= '</div>';
+                            }
+
                             $html .= '</div>';
                         }
-
-                        $html .= '</div>';
                     }
 
                     // Close the passages column.
@@ -223,7 +232,7 @@ class filter_biblelinks extends moodle_text_filter {
             'pl' => 'UBG',
             'ro' => 'RMNN',
             'ru' => 'NRT',
-            'tr' => 'NIV',
+            'tr' => 'TCL02',
             'uk' => 'UKR',
         ];
 

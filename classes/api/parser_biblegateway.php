@@ -16,56 +16,27 @@
 
 namespace filter_biblelinks\api;
 
-class get_biblegateway {
+use filter_biblelinks\api\parser;
+
+class parser_biblegateway {
     protected string $baseurl;
 
-    protected string $passage;
+    protected array $passages;
 
     protected string $version;
+
+    protected object $parser;
 
     /**
      * Setup the API.
      */
-    public function __construct($version, $passage) {
+    public function __construct($details) {
         $this->baseurl = "https://www.biblegateway.com/passage/";
+        $this->passages = $details['passages'];
+        $this->version = $details['version'];
 
-        $this->passage = $passage;
-        $this->version = $version;
-    }
-
-    /**
-     * Check the cache for a saved translation
-     */
-    private function checkcache() {
-        global $DB;
-
-        $passages = explode(';', $this->passage);
-        $versions = explode(',', $this->version);
-
-        $data = [];
-
-        foreach ($versions as $version) {
-            $data[$version] = [];
-            foreach ($passages as $passage) {
-                $results = $DB->get_record(
-                    'filter_biblelinks_cache',
-                    [
-                        'version' => trim($version),
-                        'pkey' => trim($passage),
-                    ],
-                    '*'
-                );
-
-                $item = [];
-                $item['version'] = $version;
-                $item['pkey'] = $passage;
-                $item['passage'] = $results ? $results->passage : null;
-                $item['text'] = $results ? $results->text : null;
-
-                array_push($data[$version], $item);
-            }
-        }
-        return $data;
+        // Get the parser.
+        $this->parser = new parser($this->version, $this->passages);
     }
 
     /**
@@ -77,7 +48,7 @@ class get_biblegateway {
         global $DB;
 
         // Check the cache first.
-        $cached = $this->checkcache();
+        $cached = $this->parser->checkcache();
 
         // Loop through the cache.
         foreach ($cached as $version => $items) {
@@ -94,7 +65,7 @@ class get_biblegateway {
                     if ($html === false) {
                         // Handle error when fetching HTML.
                         echo json_encode([
-                            'error' => 'Could not fetch passage.',
+                            'error' => 'Could not fetch passage: ' . $url,
                         ]);
                         exit();
                     }
@@ -218,10 +189,10 @@ class get_biblegateway {
             }
 
             // Convert nodes list into HTML string.
-            $html .= $this->nodesToHTML($nodes);
+            $html .= $this->parser->nodesToHTML($nodes);
 
             // Clean out attributes and remove links.
-            $html = $this->cleanHTML($html);
+            $html = $this->parser->cleanHTML($html);
 
             // Return the inner HTML of the current element.
             return $html;
@@ -245,41 +216,5 @@ class get_biblegateway {
 
         // If no inner HTML found, return empty string.
         return $innerhtml;
-    }
-
-    /**
-     * Function to convert nodes list into HTML string.
-     */
-    private function nodestohtml($nodes) {
-        $html = '';
-        foreach ($nodes as $node) {
-            $html .= $node->ownerDocument->saveHTML($node);
-        }
-        return $html;
-    }
-
-    /**
-     * Function to clean out attributes and remove links from HTML
-     */
-    private function cleanhtml($html) {
-        // Define the list of allowed tags.
-        $allowedtags = '<p><br><h1><h2><h3><h4><h5><h6><strong><em><u><blockquote><ul><ol><li>';
-
-        // Strip tags and keep only the allowed tags.
-        $cleanedhtml = strip_tags($html, $allowedtags);
-
-        // Remove class attributes.
-        $cleanedhtml = preg_replace('/(<[^>]+) class="[^"]*"/i', '$1', $cleanedhtml);
-
-        // Remove items like [abc123].
-        $cleanedhtml = preg_replace('/\[[a-z0-9]+\]/i', '', $cleanedhtml);
-
-        // Remove items like (abc123).
-        $cleanedhtml = preg_replace('/\([A-Za-z0-9]+\)/i', '', $cleanedhtml);
-
-        // Replace h3 with strong.
-        $cleanedhtml = preg_replace('/<h3>(.*?)<\/h3>/', '<strong>$1</strong>', $cleanedhtml);
-
-        return $cleanedhtml;
     }
 }
