@@ -92,6 +92,13 @@ class bibleapi {
         $data['TCL02']['parser'] = self::BIBLECOM;
         $data['TCL02']['bibleid'] = 170;
 
+        $data['VDC'] = [];
+        $data['VDC'] = [];
+        $data['VDC']['version'] = 'VDC';
+        $data['VDC']['passages'] = $passages;
+        $data['VDC']['parser'] = self::BIBLECOM;
+        $data['VDC']['bibleid'] = 191;
+
         // If the version does not exist, assume biblegateway.com.
         if (!array_key_exists($version, $data)) {
             $data[$version] = [

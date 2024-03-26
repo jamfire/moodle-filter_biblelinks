@@ -228,10 +228,10 @@ class filter_biblelinks extends moodle_text_filter {
             'ar' => 'NAV',
             'bg' => 'BPB',
             'cs' => 'B21',
-            'en' => 'ESV',
+            'en' => 'NIV', // On biblegateway.com.
             'hu' => 'KAR',
-            'pl' => 'UBG',
-            'ro' => 'RMNN',
+            'pl' => 'NP', // On biblegateway.com.
+            'ro' => 'VDC', // On bible.com.
             'ru' => 'NRT',
             'tr' => 'TCL02',
             'uk' => 'UKR',
