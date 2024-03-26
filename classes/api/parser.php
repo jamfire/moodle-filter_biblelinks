@@ -40,12 +40,14 @@ class parser {
 
         // Get the bookname.
         $book = $parts[0];
+        $chapterkey = 1;
         if (strlen($book) === 1) {
             $book = $parts[0] . " " . $parts[1];
+            $chapterkey = 2;
         }
 
         // Get the chapter.
-        $chapter = explode(':', $parts[0])[0];
+        $chapter = explode(':', $parts[$chapterkey])[0];
 
         // Format the passages.
         $passage = preg_replace('/,\s+/', ',', $passage);

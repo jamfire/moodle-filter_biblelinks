@@ -164,6 +164,9 @@ class filter_biblelinks extends moodle_text_filter {
                     foreach ($passages as $passage) {
                         // Parse out split passages.
                         $formattedpassages = $parser->formatpassages($passage);
+                        // echo "<pre>";
+                        // var_dump($formattedpassages);
+                        // echo "</pre>";
 
                         foreach ($formattedpassages as $item) {
                             // Check for cached record.
@@ -182,7 +185,7 @@ class filter_biblelinks extends moodle_text_filter {
                             }
                             $html .= '<div class="px-3 pb-5 filter-biblelinks__bible-passage" data-version="';
                             $html .= trim($version) . '" data-status="' . $status . '"';
-                            $html .= ' data-passage="' . trim($passage) . '">';
+                            $html .= ' data-passage="' . trim($item) . '">';
 
                             if ($record) {
                                 $html .= '<h5>' . $record->passage . '</h5>';

@@ -50,9 +50,8 @@
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // Request was successful, handle the response
                     let response = JSON.parse(xhr.responseText);
-                    console.log(response);
                     item.innerHTML = "";
-                    response.data[version].forEach(passage => {
+                    response.data[0][version].forEach(passage => {
                         item.innerHTML += '<h5>' + passage.passage + '</h5>';
                         item.innerHTML += passage.text;
                     });
