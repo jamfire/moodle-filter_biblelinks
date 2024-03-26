@@ -151,7 +151,7 @@ class filter_biblelinks extends moodle_text_filter {
                 foreach ($versionarray as $version) {
                     // Open the passages column.
                     $passages = explode(';', $parts[0]);
-                    $html .= '<div class="col">';
+                    $html .= '<div class="col-xl">';
 
                     // Header row.
                     $html .= '<div class="bg-primary text-white px-3 py-2 mb-3"><strong>';
@@ -164,9 +164,6 @@ class filter_biblelinks extends moodle_text_filter {
                     foreach ($passages as $passage) {
                         // Parse out split passages.
                         $formattedpassages = $parser->formatpassages($passage);
-                        // echo "<pre>";
-                        // var_dump($formattedpassages);
-                        // echo "</pre>";
 
                         foreach ($formattedpassages as $item) {
                             // Check for cached record.
@@ -183,7 +180,8 @@ class filter_biblelinks extends moodle_text_filter {
                             if ($record) {
                                 $status = "cached";
                             }
-                            $html .= '<div class="px-3 pb-5 filter-biblelinks__bible-passage" data-version="';
+                            $html .= '<div class="px-3 pb-5 filter-biblelinks__bible-passage ';
+                            $html .= $this->textdirection(trim($version)) . '" data-version="';
                             $html .= trim($version) . '" data-status="' . $status . '"';
                             $html .= ' data-passage="' . trim($item) . '">';
 
@@ -246,5 +244,19 @@ class filter_biblelinks extends moodle_text_filter {
         }
 
         return implode(',', $versions);
+    }
+
+    /**
+     * Get text direction
+     */
+    private function textdirection($version) {
+
+        $rtl = [
+            'NAV', // Arabic default translation.
+        ];
+
+        $textdirection = !in_array($version, $rtl) ? "text-left" : "text-right";
+
+        return $textdirection;
     }
 }
