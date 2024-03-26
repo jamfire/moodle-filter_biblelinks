@@ -92,12 +92,29 @@ class bibleapi {
         $data['TCL02']['parser'] = self::BIBLECOM;
         $data['TCL02']['bibleid'] = 170;
 
+        // Romanian version.
         $data['VDC'] = [];
         $data['VDC'] = [];
         $data['VDC']['version'] = 'VDC';
         $data['VDC']['passages'] = $passages;
         $data['VDC']['parser'] = self::BIBLECOM;
         $data['VDC']['bibleid'] = 191;
+
+        // Czech version.
+        $data['CSP'] = [];
+        $data['CSP'] = [];
+        $data['CSP']['version'] = 'CSP';
+        $data['CSP']['passages'] = $passages;
+        $data['CSP']['parser'] = self::BIBLECOM;
+        $data['CSP']['bibleid'] = 509;
+
+        // Hungarian version.
+        $data['HUNB'] = [];
+        $data['HUNB'] = [];
+        $data['HUNB']['version'] = 'HUNB';
+        $data['HUNB']['passages'] = $passages;
+        $data['HUNB']['parser'] = self::BIBLECOM;
+        $data['HUNB']['bibleid'] = 1239;
 
         // If the version does not exist, assume biblegateway.com.
         if (!array_key_exists($version, $data)) {

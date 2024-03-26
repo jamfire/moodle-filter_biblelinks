@@ -227,13 +227,13 @@ class filter_biblelinks extends moodle_text_filter {
         $translations = [
             'ar' => 'NAV',
             'bg' => 'BPB',
-            'cs' => 'B21',
+            'cs' => 'CSP', // On bible.com.
             'en' => 'NIV', // On biblegateway.com.
-            'hu' => 'KAR',
+            'hu' => 'HUNB', // On bible.com.
             'pl' => 'NP', // On biblegateway.com.
             'ro' => 'VDC', // On bible.com.
             'ru' => 'NRT',
-            'tr' => 'TCL02',
+            'tr' => 'TCL02', // On bible.com.
             'uk' => 'UKR',
         ];
 
